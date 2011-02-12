@@ -450,13 +450,14 @@ AL_API ALvoid AL_APIENTRY alSource3f(ALuint source, ALenum eParam, ALfloat flVal
 AL_API ALvoid AL_APIENTRY alSourcefv(ALuint source, ALenum eParam, const ALfloat *pflValues)
 {
     ALCcontext    *pContext;
+    ALsource            *Source;
 
     pContext = GetContextSuspended();
     if(!pContext) return;
 
     if(pflValues)
     {
-        if(VerifySource(pContext->SourceList, source) != NULL)
+        if((Source = VerifySource(pContext->SourceList, source)) != NULL)
         {
             switch(eParam)
             {
@@ -483,6 +484,16 @@ AL_API ALvoid AL_APIENTRY alSourcefv(ALuint source, ALenum eParam, const ALfloat
                 case AL_VELOCITY:
                 case AL_DIRECTION:
                     alSource3f(source, eParam, pflValues[0], pflValues[1], pflValues[2]);
+                    break;
+                
+                case AL_EXT_MIXER_OVERRIDE:
+                    if (pflValues[0] >= 0 && pflValues[0] < OUTPUTCHANNELS && (int)pflValues[0] == pflValues[0])
+                    {
+                      Source->MixerOverrides[(int)pflValues[0]] = pflValues[1];
+                      Source->NeedsUpdate = AL_TRUE;
+                    }
+                    else
+                      alSetError(pContext, AL_INVALID_VALUE);
                     break;
 
                 default:
@@ -527,6 +538,16 @@ AL_API ALvoid AL_APIENTRY alSourcei(ALuint source,ALenum eParam,ALint lValue)
                 if(lValue == AL_FALSE || lValue == AL_TRUE)
                 {
                     Source->bHeadRelative = (ALboolean)lValue;
+                    Source->NeedsUpdate = AL_TRUE;
+                }
+                else
+                    alSetError(pContext, AL_INVALID_VALUE);
+                break;
+            
+            case AL_EXT_MIXER_OVERRIDE_FLAG:
+                if(lValue == AL_FALSE || lValue == AL_TRUE)
+                {
+                    Source->MixerOverrideFlag = (ALboolean)lValue;
                     Source->NeedsUpdate = AL_TRUE;
                 }
                 else
@@ -797,6 +818,7 @@ AL_API void AL_APIENTRY alSourceiv(ALuint source, ALenum eParam, const ALint* pl
                 case AL_AUXILIARY_SEND_FILTER_GAIN_AUTO:
                 case AL_AUXILIARY_SEND_FILTER_GAINHF_AUTO:
                 case AL_DISTANCE_MODEL:
+                case AL_EXT_MIXER_OVERRIDE_FLAG:
                     alSourcei(source, eParam, plValues[0]);
                     break;
 
@@ -1074,6 +1096,10 @@ AL_API ALvoid AL_APIENTRY alGetSourcei(ALuint source, ALenum eParam, ALint *plVa
                 case AL_SOURCE_RELATIVE:
                     *plValue = Source->bHeadRelative;
                     break;
+                
+                case AL_EXT_MIXER_OVERRIDE_FLAG:
+                    *plValue = Source->MixerOverrideFlag;
+                    break;
 
                 case AL_CONE_INNER_ANGLE:
                     *plValue = (ALint)Source->flInnerAngle;
@@ -1246,6 +1272,7 @@ AL_API void AL_APIENTRY alGetSourceiv(ALuint source, ALenum eParam, ALint* plVal
                 case AL_AUXILIARY_SEND_FILTER_GAIN_AUTO:
                 case AL_AUXILIARY_SEND_FILTER_GAINHF_AUTO:
                 case AL_DISTANCE_MODEL:
+                case AL_EXT_MIXER_OVERRIDE_FLAG:
                     alGetSourcei(source, eParam, plValues);
                     break;
 
@@ -1717,6 +1744,8 @@ done:
 
 static ALvoid InitSourceParams(ALsource *Source)
 {
+    int i;
+  
     Source->flInnerAngle = 360.0f;
     Source->flOuterAngle = 360.0f;
     Source->flPitch = 1.0f;
@@ -1754,6 +1783,10 @@ static ALvoid InitSourceParams(ALsource *Source)
     Source->lSourceType = AL_UNDETERMINED;
 
     Source->NeedsUpdate = AL_TRUE;
+    
+    Source->MixerOverrideFlag = AL_FALSE;
+    for (i = 0; i < OUTPUTCHANNELS; i++)
+      Source->MixerOverrides[i] = 0.0f;
 
     Source->Buffer = NULL;
 }

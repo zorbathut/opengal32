@@ -77,6 +77,9 @@ typedef struct ALsource
 
     ALint  lOffset;
     ALint  lOffsetType;
+    
+    ALboolean MixerOverrideFlag;
+    ALfloat MixerOverrides[OUTPUTCHANNELS];
 
     // Source Type (Static, Streaming, or Undetermined)
     ALint  lSourceType;

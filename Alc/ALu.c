@@ -855,7 +855,10 @@ static ALvoid CalcSourceParams(const ALCcontext *ALContext, ALsource *ALSource)
     for(s = 0; s < OUTPUTCHANNELS; s++)
     {
         ALfloat gain = SpeakerGain[s]*DirGain + AmbientGain;
-        ALSource->Params.DryGains[s] = DryMix * gain;
+        if (!ALSource->MixerOverrideFlag)
+          ALSource->Params.DryGains[s] = DryMix * gain;
+        else
+          ALSource->Params.DryGains[s] = DryMix * ALSource->MixerOverrides[s];
     }
 
     /* Update filter coefficients. */

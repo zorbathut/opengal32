@@ -23,6 +23,8 @@
 
 #include <stddef.h>
 
+#include "AL/alc.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -207,6 +209,22 @@ ALC_API ALCcontext* ALC_APIENTRY alcGetThreadContext(void);
 #ifndef AL_EXT_source_distance_model
 #define AL_EXT_source_distance_model 1
 #define AL_SOURCE_DISTANCE_MODEL                 0x200
+#endif
+
+#ifndef AL_EXT_MIXER_OVERRIDE
+#define AL_EXT_MIXER_OVERRIDE 0x707070
+#define AL_EXT_MIXER_OVERRIDE_FLAG 0x707071
+
+// currently unused
+#define AL_EXT_CHANNEL_FRONT_LEFT 0x707080
+#define AL_EXT_CHANNEL_FRONT_RIGHT 0x707081
+#define AL_EXT_CHANNEL_FRONT_CENTER 0x707082
+#define AL_EXT_CHANNEL_LFE 0x707083
+#define AL_EXT_CHANNEL_BACK_LEFT 0x707084
+#define AL_EXT_CHANNEL_BACK_RIGHT 0x707085
+#define AL_EXT_CHANNEL_BACK_CENTER 0x707086
+#define AL_EXT_CHANNEL_SIDE_LEFT 0x707087
+#define AL_EXT_CHANNEL_SIDE_RIGHT 0x707088
 #endif
 
 #ifdef __cplusplus
